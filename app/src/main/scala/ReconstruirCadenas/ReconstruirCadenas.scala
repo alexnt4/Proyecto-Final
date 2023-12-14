@@ -35,6 +35,31 @@ object ReconstruirCadenas{
     resultado.getOrElse(Seq.empty)
   }
 
+
+
+
+
+
+  // 3.3 implementando solución turbo
+  
+  def reconstruirCadenaTurbo(n: Int, o: Oraculo): Seq[Char] = {
+    def crearCadenaTurbo(tamano: Int, subActuales: Set[Seq[Char]]): Seq[Char] = {
+      // crea las subcadenas con el doble de tamaño
+      val nuevasSubcadenas = subActuales.flatMap(sub1 => subActuales.map(sub2 => sub1 ++ sub2))
+      val subcadenasPrueba = nuevasSubcadenas.filter(o)
+
+      // si encuentra una subcadena de tamaño n, la retorna, de lo contrario, sigue buscando
+      subcadenasPrueba.find(_.length == n).getOrElse {
+        // si no encuentra una subcadena de tamaño n, sigue buscando con el doble de tamaño
+        if (tamano > n) Seq.empty[Char]
+        else crearCadenaTurbo(tamano * 2, subcadenasPrueba)
+      }
+    }
+    // hace las subcadenas con el alfabeto
+    val subcadenasAlfabeto: Set[Seq[Char]] = alfabeto.map(Seq(_)).toSet
+    crearCadenaTurbo(2, subcadenasAlfabeto)
+  }
+
   
 
 
