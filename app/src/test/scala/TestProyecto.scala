@@ -19,7 +19,7 @@ class TestProyecto extends AnyFunSuite{
 
     // test2222
     
-    test("test turbo") {
+    test("test turbo y turbo paralela") {
         val resultados1 = for {
             i <- 1 to 4
             size = math.pow(2, i).toInt
