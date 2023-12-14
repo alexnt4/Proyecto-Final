@@ -33,6 +33,32 @@ object ReconstruirCadenasPar {
     }
   }
 
+
+  // implementación de la solución turbo paralela
+
+  def reconstruirCadenaTurboPar(umbral: Int)(n: Int, o: Oraculo) : Seq [Char]= {
+    if (n <= umbral) {
+      // Si el tamaño del conjunto de secuencias es menor o igual al umbral, ejecutar de forma secuencial
+      ReconstruirCadenas.reconstruirCadenaTurbo(n, o)
+    } else {
+      def crearCadenaTurbo(tamano: Int, subActuales: ParSet[Seq[Char]]): Seq[Char] = {
+        val nuevasSubcadenas = subActuales.flatMap(sub1 => subActuales.map(sub2 => sub1 ++ sub2)).par
+        val subcadenasPrueba = nuevasSubcadenas.filter(o)
+
+        // Obtener la primera subcadena válida de longitud N
+        subcadenasPrueba.find(_.length == n).getOrElse {
+          // Si el tamaño actual supera N, devolver una cadena vacía
+          if (tamano > n) Seq.empty[Char]
+          else crearCadenaTurbo(tamano * 2, subcadenasPrueba.par)
+        }
+      }
+      // Inicializar el conjunto de subcadenas generadas de longitud 1 como ParSet
+      val subcadenasAlfabeto: ParSet[Seq[Char]] = alfabeto.map(Seq(_)).toSet.par
+
+      crearCadenaTurbo(2, subcadenasAlfabeto)
+    }
+  }
+
   
 
   
