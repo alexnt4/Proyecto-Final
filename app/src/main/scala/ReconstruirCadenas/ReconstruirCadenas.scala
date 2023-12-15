@@ -253,7 +253,7 @@ object ReconstruirCadenas{
 
 println("-----------------------------------------------------------------------------------------------\n\n")
     println("Comparacion de rendimiento entre SolucionMejoradaPar  y SolucionMejorada")
-    val resultados3 = for {
+    val resultados2 = for {
       i <- 1 to 8 // Cambiando el rango para representar potencias de 2 de 2 a 16
       // Creación del oráculo y la cadena objetivo
       cadenaObjetivo = secAlAzar(i, Seq.empty)
@@ -269,7 +269,7 @@ println("-----------------------------------------------------------------------
       println(s"Resultados coinciden para tamaño $i: $coinciden")
       (compararAlgoritmos(SolucionMejorada, ReconstruirCadenasPar.SolucionMejoradaPar(4))(i, oraculo), "Tamaño: " + i)
     }
-    resultados3.foreach(println)
+    resultados2.foreach(println)
 
     println("Comparación de rendimiento entre cadena turbo y  cadena turbo paralela")
     val resultados3 = for {
@@ -291,7 +291,7 @@ println("-----------------------------------------------------------------------
     resultados3.foreach(println)
 
 println("Comparacion de rendimiento entre Turbomejorada y TurbomejoradaPar")
-    val resultados2 = for {
+    val resultados4 = for {
       i <- 1 to 8 // Cambiando el rango para representar potencias de 2 de 2 a 16
       size = math.pow(2, i).toInt // Calculando la potencia de 2
       // Creación del oráculo y la cadena objetivo
@@ -308,7 +308,7 @@ println("Comparacion de rendimiento entre Turbomejorada y TurbomejoradaPar")
       println(s"Resultados coinciden para tamaño $size: $coinciden")
       (compararAlgoritmos(TurboMejorado, ReconstruirCadenasPar.TurboMejoradoPar(4))(size, oraculo), "Tamaño: " + size)
     }
-    resultados2.foreach(println)
+    resultados4.foreach(println)
 
     println("Comparación de rendimiento entre reconstruirCadenaTurboAcelerada y reconstruirCadenaTurboAceleradaPar")
     val resultados5 = for {
