@@ -17,7 +17,7 @@ class TestProyecto extends AnyFunSuite{
         assert("Proyecto Final 2023-II" == ReconstruirCadenas.saludo())
     }
 
-    // test2222
+    // test222233
     
     test("test turbo y turbo paralela") {
         val resultados1 = for {
