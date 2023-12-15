@@ -40,7 +40,29 @@ class TestProyecto extends AnyFunSuite{
         assert(resultados1.forall(coinciden => coinciden), "No todas las cadenas coinciden con la cadena objetivo")
     }
 
-    
+    test("Test Solucion Mejorada y Mejorada Par") {
+        val resultados = for {
+            i <- 1 to 8
+            // Creación del oráculo y la cadena objetivo
+            cadenaObjetivo = secAlAzar(i, Seq.empty)
+            oraculo = Oraculo.crearOraculo(cadenaObjetivo)
+            // Resultados de Solucion mejorada y su version paralelizada
+            resultadoSolucionMejorada = ReconstruirCadenas.SolucionMejorada(i, oraculo)
+            resultadoSolucionMejoradaPar = ReconstruirCadenasPar.SolucionMejoradaPar(4)(i, oraculo)
+        } yield {
+            println(s"Cadena objetivo para tamano $i: $cadenaObjetivo")
+            // Comparación con la cadena objetivo
+            val coinciden = resultadoSolucionMejorada == cadenaObjetivo && resultadoSolucionMejoradaPar == cadenaObjetivo
+            println(s"Resultados coinciden para tamano $i: $coinciden")
+            coinciden // Retornar el resultado de la comparación
+        }
+        println("\n\n")
+        // Verificar que todas las coincidencias sean verdaderas
+        assert(resultados.forall(coinciden => coinciden), "No todas las cadenas coinciden con la cadena objetivo")
+
+    }
+
+
     test("test turbo y turbo paralela") {
         val resultados1 = for {
             i <- 1 to 4
@@ -61,6 +83,28 @@ class TestProyecto extends AnyFunSuite{
 
         // verificar que todas las coincidencia sean verdaderas
         assert(resultados1.forall(coinciden => coinciden), "No todas las coincidencias fueron verdaderas")
+    }
+
+    test("Test Solucion Turbo Mejorada y Turbo Mejorada Par") {
+        val resultados1 = for {
+            i <- 1 to 8
+            size = math.pow(2, i).toInt
+            // Creación del oráculo y la cadena objetivo
+            cadenaObjetivo = secAlAzar(size, Seq.empty)
+            oraculo = Oraculo.crearOraculo(cadenaObjetivo)
+            // Resultados de Turbo Mejorada y su version paralela
+            resultadoTurboMejorada = ReconstruirCadenas.TurboMejorado(size, oraculo)
+            resultadoTurboMejoradaPar = ReconstruirCadenasPar.TurboMejoradoPar(4)(size, oraculo)
+        } yield {
+            println(s"Cadena objetivo para tamano $size: $cadenaObjetivo")
+            // Comparación con la cadena objetivo
+            val coinciden = resultadoTurboMejorada == cadenaObjetivo && resultadoTurboMejoradaPar == cadenaObjetivo
+            println(s"Resultados coinciden para tamano $size: $coinciden")
+            coinciden // Retornar el resultado de la comparación
+        }
+
+        // Verificar que todas las coincidencias sean verdaderas
+        assert(resultados1.forall(coinciden => coinciden), "No todas las cadenas coinciden con la cadena objetivo")
     }
 
     test("Test TurboAcelerada") {

@@ -64,7 +64,44 @@ object ReconstruirCadenas{
   }
 
 
+// 3.2 Solución Mejorada
+  /**
+   * Función que reconstruye una cadena usando la propiedad de que s i s=s1++s2
+   * entonces s1 y s2 tambien son subsecuencias de s.
+   * @param n longitud de las secuencia que hay que reconstruir
+   * @param o Oráculo utilizado para validar las subcadenas.
+   * @return La cadena reconstruida que cumpla con la condición del oráculo.
+   */
+  def SolucionMejorada(n: Int, o: Oraculo): Seq[Char] = {
+    //si n es menor que 1 retornará una seq vacía
+    if (n < 1) {
+      Seq.empty[Char] //Secuencia vacia
+    } else { //En caso contrario se implementará
+      def subcadenas(alfabeto: Seq[Char], longitud: Int): Seq[Seq[Char]] = {
+        if (longitud == 0) //Si la longitud es 0 significa que la seq está sin elementos
+          Seq(Seq.empty[Char])
+        else {
+          //Si no se buscará en las subcadenas anteriores
+          val subcadenas_validas_anteriores = subcadenas(alfabeto, longitud - 1)
+          //Se forman las combinaciones
+          val lista_combinaciones = for (
+            un_caracter <- alfabeto;
+            una_subcadena <- subcadenas_validas_anteriores;
+            cadenas_candidatas = un_caracter +: una_subcadena
+            if o(cadenas_candidatas)
+          ) yield cadenas_candidatas
+          lista_combinaciones
+        }
+      }
 
+      subcadenas(alfabeto, n).headOption.getOrElse(Seq.empty[Char])
+      /*
+      La función headOption devuelve el primer elemento de la secuencia
+      como un Option, y getOrElse(Seq.empty[Char]) se asegura de que,
+      si la secuencia está vacía, se devuelva una secuencia vacía por defecto.
+      */
+    }
+  }
 
 
 
@@ -93,6 +130,63 @@ object ReconstruirCadenas{
     // hace las subcadenas con el alfabeto
     val subcadenasAlfabeto: Set[Seq[Char]] = alfabeto.map(Seq(_)).toSet
     crearCadenaTurbo(2, subcadenasAlfabeto)
+  }
+
+  // 3.4 implementacion de la solucion turbo mejorada
+  /**
+   * Función que reconstruye una cadena usando Usa la propiedad de que s i s=s1++s2 entonces
+   * s1 y s2 tambien son subsecuencias de s
+   * @param n longitud de la secuencia que hay que reconstruir (n , potencia de 2)
+   * @param o Oráculo utilizado para validar las subcadenas.
+   * @return devuelve la secuencia reconstruida
+   */
+  def TurboMejorado(n: Int, PezOraculo: Oraculo): Seq[Char] = {
+    //Evaluar si el tamaño es menor que 1 para retornar cadena vacia
+    if (n < 1) {
+      Seq.empty[Char]
+    }
+    else {
+      // Funcion que verifica si una secuencia es subsecuencia de otra
+      def verificarSecuencias(sec: Seq[Char], subsecuencias: Seq[Seq[Char]], l: Int): Boolean = {
+        if (sec.length == l + 1) {
+          true //Si es subsecuencia
+        } else {
+          val probar = sec.slice(1, 1 + l) //Para evaluar
+          if (subsecuencias.contains(probar)) {
+            verificarSecuencias(sec.drop(1), subsecuencias, l) //Se manda la recursion
+          } else {
+            false
+          }
+        }
+      }
+
+      //Funcion encargada de generar las cadenas validas anteriores para concatenarlas
+      // y verificar si son subsecuencias de la cadena anterior y del oraculo
+      def subcadenasTurbo(alfabeto: Seq[Char], longitud: Int): Seq[Seq[Char]] = {
+        if (longitud == 1)
+          for (un_caracter <- alfabeto; if (PezOraculo(Seq(un_caracter)))) yield Seq(un_caracter)
+        else {
+          val SubCadenasBuenasAnteriores = subcadenasTurbo(alfabeto, longitud / 2)
+          val Combinaciones = for (
+            sub_cadena_1 <- SubCadenasBuenasAnteriores;
+            sub_cadena_2 <- SubCadenasBuenasAnteriores;
+            valores = sub_cadena_1 ++ sub_cadena_2
+            if (verificarSecuencias(valores, SubCadenasBuenasAnteriores, longitud / 2))
+            if PezOraculo(valores)
+          ) yield valores
+          Combinaciones
+        }
+      }
+
+      val cadenas = subcadenasTurbo(alfabeto, n)
+      cadenas.headOption.getOrElse(Seq.empty[Char])
+      /*
+      Se usa el headOption para manejar el caso en que la
+      secuencia es vacía y también se ha corregido la
+      implementación de subcadenas en la función paralelizada
+      para evitar posibles problemas de ordenamiento.
+       */
+    }
   }
 
   // 3.5 implementando solución turbo acelerada
@@ -157,6 +251,26 @@ object ReconstruirCadenas{
     }
     resultados1.foreach(println)
 
+println("-----------------------------------------------------------------------------------------------\n\n")
+    println("Comparacion de rendimiento entre SolucionMejoradaPar  y SolucionMejorada")
+    val resultados3 = for {
+      i <- 1 to 8 // Cambiando el rango para representar potencias de 2 de 2 a 16
+      // Creación del oráculo y la cadena objetivo
+      cadenaObjetivo = secAlAzar(i, Seq.empty)
+      oraculo = Oraculo.crearOraculo(cadenaObjetivo)
+      // Resultados de PRC_TurboAcelerada y PRC_TurboAceleradaPar
+      resultado = SolucionMejorada(i, oraculo)
+      resultadoPar = ReconstruirCadenasPar.SolucionMejoradaPar(4)(i, oraculo)
+    } yield {
+      println(s"Cadena objetivo para tamaño $i: $cadenaObjetivo")
+      // Comparación con la cadena objetivo
+      val coinciden = resultado == cadenaObjetivo && resultadoPar == cadenaObjetivo
+      println(resultado, resultadoPar)
+      println(s"Resultados coinciden para tamaño $i: $coinciden")
+      (compararAlgoritmos(SolucionMejorada, ReconstruirCadenasPar.SolucionMejoradaPar(4))(i, oraculo), "Tamaño: " + i)
+    }
+    resultados3.foreach(println)
+
     println("Comparación de rendimiento entre cadena turbo y  cadena turbo paralela")
     val resultados3 = for {
       i <- 1 to 4
@@ -175,6 +289,26 @@ object ReconstruirCadenas{
       (compararAlgoritmos(reconstruirCadenaTurbo, ReconstruirCadenasPar.reconstruirCadenaTurboPar(4))(size, oraculo), "Tamano: " + size)
     }
     resultados3.foreach(println)
+
+println("Comparacion de rendimiento entre Turbomejorada y TurbomejoradaPar")
+    val resultados2 = for {
+      i <- 1 to 8 // Cambiando el rango para representar potencias de 2 de 2 a 16
+      size = math.pow(2, i).toInt // Calculando la potencia de 2
+      // Creación del oráculo y la cadena objetivo
+      cadenaObjetivo = secAlAzar(size, Seq.empty)
+      oraculo = Oraculo.crearOraculo(cadenaObjetivo)
+      // Resultados de PRC_TurboAcelerada y PRC_TurboAceleradaPar
+      resultadoTurbo = TurboMejorado(size, oraculo)
+      resultadoTurboPar = ReconstruirCadenasPar.TurboMejoradoPar(4)(size, oraculo)
+    } yield {
+      println(s"Cadena objetivo para tamaño $size: $cadenaObjetivo")
+      // Comparación con la cadena objetivo
+      val coinciden = resultadoTurbo == cadenaObjetivo && resultadoTurboPar == cadenaObjetivo
+      println(resultadoTurbo, resultadoTurboPar)
+      println(s"Resultados coinciden para tamaño $size: $coinciden")
+      (compararAlgoritmos(TurboMejorado, ReconstruirCadenasPar.TurboMejoradoPar(4))(size, oraculo), "Tamaño: " + size)
+    }
+    resultados2.foreach(println)
 
     println("Comparación de rendimiento entre reconstruirCadenaTurboAcelerada y reconstruirCadenaTurboAceleradaPar")
     val resultados5 = for {
