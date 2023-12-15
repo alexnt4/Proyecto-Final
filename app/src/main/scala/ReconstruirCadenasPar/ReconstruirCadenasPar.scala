@@ -5,8 +5,9 @@ import common._
 import Benchmark._
 import Oraculo._
 import ReconstruirCadenas._
+
 import scala.annotation.tailrec
-import scala.collection.parallel.immutable.{ParSet, ParSeq}
+import scala.collection.parallel.immutable.{ParSeq, ParSet}
 import scala.collection.parallel.CollectionConverters._
 import scala.util.Random
 
@@ -48,6 +49,47 @@ object ReconstruirCadenasPar {
     }
   }
 
+  //Implementacion de la solucion mejorada paralela
+  /**
+   * Método encargado de reconstruir una cadena de manera mejorada de forma paralela si supera un umbral.
+   *
+   * @param umbral Valor límite para decidir si se aplica la reconstrucción de manera paralela.
+   * @param n      Longitud de las subcadenas a generar.
+   * @param o      Oráculo utilizado para validar las subcadenas.
+   * @return La subcadena que cumpla con la condición del oráculo.
+   */
+  def SolucionMejoradaPar(umbral: Int)(n: Int, o: Oraculo): Seq[Char] = {
+    //Si n es menor que uno la secuencia vacia
+    if (n < 1) {
+      Seq.empty[Char]
+    } else if (n <= umbral) { //Si es menor que el umbral la manda a la funcion sencuencial
+      ReconstruirCadenas.SolucionMejorada(n, o) //Llamado a la funcion secuencial
+    } else {
+      def subcadenas(alfabeto: Seq[Char], longitud: Int): ParSeq[Seq[Char]] = {
+        if (longitud == 0)
+          ParSeq(Seq.empty[Char])
+        else {
+          val subcadenas_validas_anteriores = subcadenas(alfabeto, longitud - 1)
+          //Misma implementacion pero con .par
+          (for (
+            un_caracter <- alfabeto;
+            una_subcadena <- subcadenas_validas_anteriores;
+            cadenas_candidatas = un_caracter +: una_subcadena
+            if o(cadenas_candidatas)
+          ) yield cadenas_candidatas).par
+        }
+      }
+
+      subcadenas(alfabeto, n).headOption.getOrElse(Seq.empty[Char])
+      /*
+      Se usa el headOption para manejar el caso en que la
+      secuencia es vacía y también se ha corregido la
+      implementación de subcadenas en la función paralelizada
+      para evitar posibles problemas de ordenamiento.
+       */
+    }
+  }
+
 
   // implementación de la solución turbo paralela
   /**
@@ -78,6 +120,64 @@ object ReconstruirCadenasPar {
       val subcadenasAlfabeto: ParSet[Seq[Char]] = alfabeto.map(Seq(_)).toSet.par
 
       crearCadenaTurbo(2, subcadenasAlfabeto)
+    }
+  }
+
+  //Implementacion de la solucion turbo mejorada paralela
+  /**
+   * Método encargado de reconstruir una cadena de manera turbo mejorada de forma
+   * paralela si supera un umbral.
+   * @param umbral Valor límite para decidir si se aplica la reconstrucción de manera paralela.
+   * @param n      Longitud de las subcadenas a generar.
+   * @param o      Oráculo utilizado para validar las subcadenas.
+   * @return La subcadena que cumpla con la condición del oráculo.
+   */
+  def TurboMejoradoPar(umbral: Int)(n: Int, PezOraculo: Oraculo): Seq[Char] = {
+    if (n < 1) {
+      Seq.empty[Char]
+    }
+    else if (n <= umbral) {
+      //if para evaluar si n es menor y seria mejor hacerce por la secuencial
+      ReconstruirCadenas.TurboMejorado(n, PezOraculo)
+    }
+    else {
+      def verificarSecuencias(sec: Seq[Char], subsecuencias: ParSeq[Seq[Char]], l: Int): Boolean = {
+        if (sec.length == l + 1) {
+          true
+        } else {
+          val test = sec.slice(1, 1 + l)
+          if (subsecuencias.seq.contains(test)) {
+            verificarSecuencias(sec.drop(1), subsecuencias, l)
+          } else {
+            false
+          }
+        }
+      }
+
+      def subcadenasTurbo(alfabeto: Seq[Char], longitud: Int): ParSeq[Seq[Char]] = {
+        if (longitud == 1)
+          (for (un_caracter <- alfabeto; if (PezOraculo(Seq(un_caracter)))) yield Seq(un_caracter)).par
+        else {
+          val SubCadenasBuenasAnteriores = subcadenasTurbo(alfabeto, longitud / 2)
+          (for (
+            sub_cadena_1 <- SubCadenasBuenasAnteriores;
+            sub_cadena_2 <- SubCadenasBuenasAnteriores;
+            valores = sub_cadena_1 ++ sub_cadena_2
+            if (verificarSecuencias(valores, SubCadenasBuenasAnteriores, longitud / 2))
+            if PezOraculo(valores)
+          ) yield valores).par
+
+        }
+      }
+
+      val cadenas = subcadenasTurbo(alfabeto, n)
+      cadenas.headOption.getOrElse(Seq.empty[Char])
+      /*
+      Se usa el headOption para manejar el caso en que la
+      secuencia es vacía y también se ha corregido la
+      implementación de subcadenas en la función paralelizada
+      para evitar posibles problemas de ordenamiento.
+       */
     }
   }
 
