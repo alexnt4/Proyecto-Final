@@ -10,14 +10,36 @@ import ReconstruirCadenas.ReconstruirCadenas
 import org.junit.runner.RunWith
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.junit.JUnitRunner
+import ReconstruirCadenas._
+import ReconstruirCadenasPar._
 
 @RunWith(classOf[JUnitRunner])
 class TestProyecto extends AnyFunSuite{
-    test("testTaller4"){
+    test("testProyectoFinal"){
         assert("Proyecto Final 2023-II" == ReconstruirCadenas.saludo())
     }
 
-    // test222233
+    test("Test ingenuo") {
+        val resultados1 = for {
+            i <- 1 to 8
+            // Creación del oráculo y la cadena objetivo
+            cadenaObjetivo = secAlAzar(i, Seq.empty)
+            oraculo = Oraculo.crearOraculo(cadenaObjetivo)
+            // Resultados de PRC_Ingenuo y PRC_IngenuoPar
+            resultadoIngenuo = reconstruirCadenaIngenuo(i, oraculo)
+            resultadoIngenuoPar = ReconstruirCadenasPar.reconstruirCadenaIngenuoPar(6)(i, oraculo)
+        } yield {
+            println(s"Cadena objetivo para tamano $i: $cadenaObjetivo")
+            // Comparación con la cadena objetivo
+            val coinciden = resultadoIngenuo == cadenaObjetivo && resultadoIngenuoPar == cadenaObjetivo
+            println(s"Resultados coinciden para tamano $i: $coinciden")
+            coinciden // Retornar el resultado de la comparación
+        }
+
+        // Verificar que todas las coincidencias sean verdaderas
+        assert(resultados1.forall(coinciden => coinciden), "No todas las cadenas coinciden con la cadena objetivo")
+    }
+
     
     test("test turbo y turbo paralela") {
         val resultados1 = for {
@@ -28,7 +50,7 @@ class TestProyecto extends AnyFunSuite{
             oraculo = Oraculo.crearOraculo(cadenaObjetivo)
             // Resultados de solucion turbo y turbo paralela
             resultadoTurbo = reconstruirCadenaTurbo(size, oraculo)
-            resultadoTurboPar = reconstruirCadenaTurboPar(4)(size, oraculo)
+            resultadoTurboPar = ReconstruirCadenasPar.reconstruirCadenaTurboPar(4)(size, oraculo)
         } yield {
             println(s"Cadena objetivo para tamano $size: $cadenaObjetivo")
             // Comparación con la cadena objetivo
@@ -39,6 +61,30 @@ class TestProyecto extends AnyFunSuite{
 
         // verificar que todas las coincidencia sean verdaderas
         assert(resultados1.forall(coinciden => coinciden), "No todas las coincidencias fueron verdaderas")
+    }
+
+    test("Test TurboAcelerada") {
+        val resultados2 = for {
+            i <- 1 to 8 // Cambiando el rango para representar potencias de 2 de 2 a 16
+            size = math.pow(2, i).toInt // Calculando la potencia de 2
+            // Creación del oráculo y la cadena objetivo
+            cadenaObjetivo = secAlAzar(size, Seq.empty)
+            oraculo = Oraculo.crearOraculo(cadenaObjetivo)
+            // Resultados de PRC_TurboAcelerada y PRC_TurboAceleradaPar
+            resultadoTurboAcelerada = reconstruirCadenaTurboAcelerada(size, oraculo)
+            resultadoTurboAceleradaPar = ReconstruirCadenasPar.reconstruirCadenaTurboAceleradaPar(6)(size, oraculo)
+        } yield {
+            println(s"Cadena objetivo para tamaño $size: $cadenaObjetivo")
+            // Comparación con la cadena objetivo
+            val coinciden = resultadoTurboAcelerada == cadenaObjetivo && resultadoTurboAceleradaPar == cadenaObjetivo
+            println(resultadoTurboAcelerada, resultadoTurboAceleradaPar)
+            println(s"Resultados coinciden para tamaño $size: $coinciden")
+            coinciden // Retornar el resultado de la comparación
+        }
+
+        // Verificar que todas las coincidencias sean verdaderas
+        assert(resultados2.forall(coinciden => coinciden), "No todas las cadenas coinciden con la cadena objetivo")
+
     }
     
 }
